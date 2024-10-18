@@ -46,6 +46,18 @@ const App = () => {
     }
   };
 
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target.result;
+        setGeoData(JSON.parse(content)); // Make sure it's valid GeoJSON
+      };
+      reader.readAsText(file);
+    }
+  };
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
@@ -75,6 +87,12 @@ const App = () => {
                   <h1 className="text-center text-2xl font-bold mt-4">
                     Welcome, {user.username}!
                   </h1>
+                  <input
+                    type="file"
+                    accept=".geojson,.kml"
+                    onChange={handleFileUpload}
+                    className="my-4 mx-auto border border-gray-300 rounded p-2"
+                  />
                   <Map geoData={geoData} onSave={fetchGeoData} />
                 </div>
               ) : (
