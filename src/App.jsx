@@ -1,44 +1,90 @@
-// src/App.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
+import NavBar from "./components/NavBar";
+import Login from "./components/LoginPage";
+import Register from "./components/Register";
 import Map from "./components/Map";
 
 const App = () => {
-  const [user, setUser] = useState("DefaultUser");
-  const [geoData, setGeoData] = useState(null);
+  const [user, setUser] = useState(null);
+  const [geoData, setGeoData] = useState([]);
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target.result;
-        setGeoData(JSON.parse(content)); // Make sure it's valid GeoJSON
-      };
-      reader.readAsText(file);
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchGeoData();
+    }
+  }, [user]);
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem("user");
+  };
+
+  const fetchGeoData = async () => {
+    try {
+      const response = await fetch("http://localhost:8087/api/geodata");
+      if (response.ok) {
+        const data = await response.json();
+        setGeoData(data);
+      } else {
+        console.error("Failed to fetch geodata");
+      }
+    } catch (error) {
+      console.error("Error fetching geodata:", error);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {user ? (
-        <div className="flex flex-col">
-          <h1 className="text-center text-2xl font-bold mt-4">
-            Welcome, {user}!
-          </h1>
-          <input
-            type="file"
-            accept=".geojson,.kml"
-            onChange={handleFileUpload}
-            className="my-4 mx-auto border border-gray-300 rounded p-2"
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        <NavBar user={user} onLogout={handleLogout} />
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              user ? <Navigate to="/" replace /> : <Login setUser={setUser} />
+            }
           />
-          <Map geoData={geoData} />
-        </div>
-      ) : (
-        <div className="flex justify-center items-center h-screen">
-          <h2>Please log in.</h2>
-        </div>
-      )}
-    </div>
+          <Route
+            path="/register"
+            element={
+              user ? (
+                <Navigate to="/" replace />
+              ) : (
+                <Register setUser={setUser} />
+              )
+            }
+          />
+          <Route
+            path="/"
+            element={
+              user ? (
+                <div className="flex flex-col">
+                  <h1 className="text-center text-2xl font-bold mt-4">
+                    Welcome, {user.username}!
+                  </h1>
+                  <Map geoData={geoData} onSave={fetchGeoData} />
+                </div>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+        </Routes>
+      </div>
+    </Router>
   );
 };
 

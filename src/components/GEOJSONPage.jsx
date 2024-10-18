@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -9,11 +9,11 @@ const geojsonData = {
       type: "Feature",
       geometry: {
         type: "Point",
-        coordinates: [78.9629, 20.5937], // [longitude, latitude]
+        coordinates: [78.9629, 20.5937],
       },
       properties: {
-        name: "Location Name", // Optional
-        description: "Description of the location", // Optional
+        name: "Location Name",
+        description: "Description of the location",
       },
     },
   ],
